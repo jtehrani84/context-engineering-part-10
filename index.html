@@ -1,0 +1,252 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Salesforce Is the Harness — Context Engineering, Part 10</title>
+<meta name="description" content="Part 10, the capstone of the Context Engineering series: every control the harness taught me, expressed as a native platform primitive — built and proven on a real governed agent, not diagrammed. Models think. Salesforce knows. Trust compounds." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: { extend: {
+      fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'], mono: ['JetBrains Mono', 'monospace'] },
+      colors: { ink: '#0b1120', card: '#111a2e', line: '#1e2b45', cyan: '#60a5fa', emerald: '#34d399', amber: '#fbbf24', red: '#f87171', violet: '#a78bfa' },
+    } },
+  };
+</script>
+<style>
+  html { scroll-behavior: smooth; }
+  body { background: #0b1120; color: #e2e8f0; -webkit-font-smoothing: antialiased; }
+  .grad { background: linear-gradient(120deg, #60a5fa 0%, #a78bfa 50%, #34d399 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .hero-gradient { background: radial-gradient(1200px 600px at 70% -10%, rgba(96,165,250,.18), transparent 60%), radial-gradient(900px 500px at 10% 10%, rgba(167,139,250,.14), transparent 55%), #0b1120; }
+  .glass { background: rgba(17,26,46,.72); border: 1px solid #1e2b45; -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+  .rule { color: #64748b; }
+  .eyebrow { letter-spacing: .18em; }
+  .reveal { opacity: 0; transform: translateY(20px); transition: opacity .6s ease, transform .6s ease; }
+  .reveal.in { opacity: 1; transform: none; }
+  .prose-lg p { margin-bottom: 1.15rem; line-height: 1.75; }
+  a.link { color: #60a5fa; text-decoration: underline; text-underline-offset: 3px; text-decoration-color: #1e2b45; }
+  a.link:hover { text-decoration-color: #60a5fa; }
+  table.honest td, table.honest th { border-bottom: 1px solid #1e2b45; padding: .7rem .9rem; vertical-align: top; }
+  .pull { border-left: 3px solid #34d399; }
+  .map-row { border: 1px solid #1e2b45; border-radius: 10px; cursor: pointer; transition: border-color .2s, background .2s; }
+  .map-row:hover { border-color: #3b4c6b; }
+  .map-row.sel { border-color: #60a5fa; background: rgba(96,165,250,.06); }
+  .badge { font-size: .68rem; letter-spacing: .04em; border-radius: 999px; padding: 1px 9px; border: 1px solid; }
+  .b-ga { color: #34d399; border-color: rgba(52,211,153,.4); background: rgba(52,211,153,.08); }
+  .b-beta { color: #fbbf24; border-color: rgba(251,191,36,.4); background: rgba(251,191,36,.08); }
+  .b-gap { color: #f87171; border-color: rgba(248,113,113,.4); background: rgba(248,113,113,.08); }
+  .swap-ctl { border: 1px solid #1e2b45; border-radius: 10px; cursor: pointer; transition: all .2s; }
+  .swap-ctl.on { border-color: #a78bfa; background: rgba(167,139,250,.1); }
+</style>
+</head>
+<body class="font-sans">
+
+<!-- ================= NAV ================= -->
+<nav class="fixed top-0 w-full z-50" style="background:rgba(11,17,32,.82);backdrop-filter:blur(10px);border-bottom:1px solid #1e2b45">
+  <div class="max-w-6xl mx-auto px-6 py-3 flex justify-between items-center">
+    <span class="text-sm font-mono text-slate-500">context-engineering <span class="text-cyan">//</span> part-10</span>
+    <div class="flex items-center gap-3 sm:gap-4 text-xs font-mono text-slate-500">
+      <a href="https://jtehrani84.github.io/claude-context-architecture/" class="hover:text-slate-300 transition hidden sm:inline">1</a>
+      <a href="https://jtehrani84.github.io/context-engineering-agentscript/" class="hover:text-slate-300 transition hidden sm:inline">2</a>
+      <a href="https://jtehrani84.github.io/context-engineering-mcp/" class="hover:text-slate-300 transition hidden sm:inline">3</a>
+      <a href="https://jtehrani84.github.io/context-engineering-knowledge-graph/" class="hover:text-slate-300 transition hidden sm:inline">4</a>
+      <a href="https://jtehrani84.github.io/context-engineering-skills/" class="hover:text-slate-300 transition hidden sm:inline">5</a>
+      <a href="https://jtehrani84.github.io/claude-context-architecture/from-memory-to-operating-system.html" class="hover:text-slate-300 transition hidden sm:inline">6</a>
+      <a href="https://jtehrani84.github.io/context-engineering-evolution/" class="hover:text-slate-300 transition">7</a>
+      <a href="https://jtehrani84.github.io/context-engineering-part-8/" class="hover:text-slate-300 transition">8</a>
+      <a href="https://jtehrani84.github.io/context-engineering-part-9/" class="hover:text-slate-300 transition">9</a>
+      <span class="text-cyan font-semibold">10</span>
+    </div>
+  </div>
+</nav>
+
+<!-- ================= HERO ================= -->
+<header class="hero-gradient">
+  <div class="max-w-5xl mx-auto px-6 pt-24 pb-24 md:pb-28 min-h-[82vh] flex flex-col justify-center">
+    <div class="font-mono text-xs md:text-sm eyebrow uppercase text-purple-300/80 mb-6">Context Engineering Series · Part 10 · The Capstone</div>
+    <h1 class="font-extrabold tracking-tight text-4xl md:text-6xl lg:text-7xl leading-[1.05]">
+      Salesforce Is<br class="hidden md:block" /> the <span class="grad">Harness</span>
+    </h1>
+    <p class="mt-8 max-w-3xl text-lg md:text-2xl text-slate-300 font-light leading-relaxed">
+      Nine parts built a harness as my own scaffold, a thing beside the platform. Part 10 is where it stops being mine. Every control I taught it has a home in the platform already, and I stopped arguing that and went and built one governed agent that proves it, on native primitives, running for real.
+    </p>
+    <div class="mt-10 flex flex-wrap gap-x-6 gap-y-2 font-mono text-xs md:text-sm text-slate-400">
+      <span>every control → a native primitive</span><span class="rule">·</span>
+      <span>built and proven, not diagrammed</span><span class="rule">·</span>
+      <span>Models think. Salesforce knows.</span>
+    </div>
+  </div>
+</header>
+
+<main class="max-w-5xl mx-auto px-6">
+
+  <!-- 2. ONE QUESTION -->
+  <section class="py-16 md:py-24 reveal">
+    <h2 class="text-2xl md:text-4xl font-bold tracking-tight mb-8">The Whole Series Was Circling One Question</h2>
+    <div class="prose-lg max-w-3xl text-slate-300 text-lg">
+      <p>Ten parts, and they were all really asking the same thing. As the models get better every few months, faster and cheaper and a little unsettling, what actually decides whether you can hand an agent real work and trust what comes back? The answer the series kept landing on is the one I didn't expect at the start. It was never the model. The model is the brain, and the brains are extraordinary and improving on their own. But trust doesn't live in the brain. It lives in everything wrapped around it: what you feed the agent, what you forbid it, the checks that catch it when it's wrong, who's allowed to change those checks, and whether it can improve itself without slipping the leash. That wrapper is what I've been calling the harness.</p>
+    </div>
+  </section>
+
+  <!-- 3. FROM SCAFFOLD TO PLATFORM -->
+  <section class="py-16 md:py-24 reveal">
+    <h2 class="text-2xl md:text-4xl font-bold tracking-tight mb-8">From My Scaffold to the Platform</h2>
+    <div class="prose-lg max-w-3xl text-slate-300 text-lg">
+      <p>For nine parts the harness was a scaffold I built and held to the side. Useful, portable, honest about its limits, but mine, and separate. The thing I kept noticing while building it is that I wasn't inventing these controls out of nothing. Each one had a shadow already in the platform. A place it wanted to live. Part 10's claim is simple and it's the whole point of the title: the controls belong in Salesforce as native primitives, not beside it as my bolt-on. So this part isn't an argument. It's a build. Click through the map, then watch it run.</p>
+    </div>
+  </section>
+
+  <!-- 4. MICRO-DEMO 1: the map -->
+  <section class="py-16 md:py-24 reveal">
+    <div class="font-mono text-xs uppercase eyebrow text-emerald mb-3">Interactive · the map</div>
+    <h2 class="text-2xl md:text-4xl font-bold tracking-tight mb-6">Every Control Has a Native Home</h2>
+    <div class="prose-lg max-w-3xl text-slate-300 text-lg mb-8">
+      <p>Each control the harness taught me, and the native Salesforce primitive it maps to. Click one. The badge is honest: most are generally available today, one is still maturing, and one genuinely has no native equivalent yet, and I say so.</p>
+    </div>
+    <div class="grid md:grid-cols-2 gap-6">
+      <div class="space-y-2" id="mapRows">
+        <div class="map-row p-3 flex items-center justify-between" data-m="injection"><span class="text-slate-200 text-sm">injection defense</span><span class="badge b-ga">GA</span></div>
+        <div class="map-row p-3 flex items-center justify-between" data-m="egress"><span class="text-slate-200 text-sm">egress / data leaving</span><span class="badge b-ga">GA</span></div>
+        <div class="map-row p-3 flex items-center justify-between" data-m="human"><span class="text-slate-200 text-sm">human-gated action</span><span class="badge b-ga">GA</span></div>
+        <div class="map-row p-3 flex items-center justify-between" data-m="evidence"><span class="text-slate-200 text-sm">evidence / grounding</span><span class="badge b-ga">GA</span></div>
+        <div class="map-row p-3 flex items-center justify-between" data-m="eval"><span class="text-slate-200 text-sm">the eval that can fail</span><span class="badge b-ga">GA</span></div>
+        <div class="map-row p-3 flex items-center justify-between" data-m="model"><span class="text-slate-200 text-sm">swap the model</span><span class="badge b-ga">GA</span></div>
+        <div class="map-row p-3 flex items-center justify-between" data-m="autonomy"><span class="text-slate-200 text-sm">autonomous improvement</span><span class="badge b-beta">beta</span></div>
+        <div class="map-row p-3 flex items-center justify-between" data-m="custody"><span class="text-slate-200 text-sm">custody of the safety layer</span><span class="badge b-gap">no native yet</span></div>
+      </div>
+      <div class="glass rounded-2xl p-6 min-h-[220px]" id="mapDetail">
+        <div class="text-slate-500 text-sm font-mono">Select a control to see where it lives in the platform.</div>
+      </div>
+    </div>
+    <p class="mt-6 max-w-3xl text-slate-500 text-sm">Every "GA" claim here was checked against the product documentation before it went on the page, not written from memory. The two honest edges, the maturing one and the missing one, are the parts that make the map worth trusting.</p>
+  </section>
+
+  <!-- 5. BUILT NOT DIAGRAMMED -->
+  <section class="py-16 md:py-24 reveal">
+    <h2 class="text-2xl md:text-4xl font-bold tracking-tight mb-8">I Built It, I Didn't Diagram It</h2>
+    <div class="prose-lg max-w-3xl text-slate-300 text-lg">
+      <p>A map is still just a claim. So I built one governed agent on those native primitives, in a real org, and put it through its paces. It answers questions about an account grounded in the record and cites the source it used. When I planted a hostile instruction inside a record field, telling the agent to email a list somewhere and push the user to a link, the agent treated it as data and refused, and the platform quietly redacted the malicious link on its own. Ask it to change a record and it stops and asks a human to confirm first. None of that is my code wrapping the agent. It's the platform's own controls, switched on.</p>
+      <p class="pull pl-5 text-slate-200 text-xl font-light my-8">Then the part I care about most. I wrote a held-out eval, the gate that can fail, and ran it. It failed one case honestly: the agent, while refusing the attack, still repeated the hostile text back in its summary. A real gap. I fixed it at the data boundary so the bad content never reaches the model, re-ran the exact same eval, and it went green. Propose, gate, catch, fix, re-gate. The loop from Part 9, running on the platform, for real.</p>
+      <p>That's the difference between a thesis and a demonstration. Everything above this line is something you can watch happen, not something I'm asking you to believe.</p>
+    </div>
+  </section>
+
+  <!-- 6. MICRO-DEMO 2: swap the brain -->
+  <section class="py-16 md:py-24 reveal">
+    <div class="font-mono text-xs uppercase eyebrow text-emerald mb-3">Interactive · the punchline</div>
+    <h2 class="text-2xl md:text-4xl font-bold tracking-tight mb-6">Swap the Brain. The Harness Doesn't Move.</h2>
+    <div class="prose-lg max-w-3xl text-slate-300 text-lg mb-8">
+      <p>This is the whole thesis in one control. Change the model the agent runs on. Watch what changes, and more importantly, watch what doesn't.</p>
+    </div>
+    <div class="glass rounded-2xl p-6 md:p-8">
+      <div class="flex flex-wrap gap-3 mb-8" id="brains">
+        <div class="swap-ctl on px-5 py-3" data-brain="frontier">
+          <div class="font-mono text-xs text-violet mb-1">the brain</div>
+          <div class="text-slate-200 text-sm font-medium">A frontier model</div>
+        </div>
+        <div class="swap-ctl px-5 py-3" data-brain="crm">
+          <div class="font-mono text-xs text-violet mb-1">the brain</div>
+          <div class="text-slate-200 text-sm font-medium">A CRM-tuned model</div>
+        </div>
+      </div>
+      <div class="grid sm:grid-cols-2 gap-6">
+        <div>
+          <div class="font-mono text-xs uppercase eyebrow text-slate-500 mb-3">what changed</div>
+          <div id="swapChanged" class="text-sm text-slate-300 leading-relaxed"></div>
+        </div>
+        <div>
+          <div class="font-mono text-xs uppercase eyebrow text-slate-500 mb-3">what stayed exactly the same</div>
+          <ul class="space-y-2 text-sm font-mono text-slate-300">
+            <li class="flex items-center gap-2"><span class="text-emerald">✓</span> injection defense + URL redaction</li>
+            <li class="flex items-center gap-2"><span class="text-emerald">✓</span> the human-confirmation gate</li>
+            <li class="flex items-center gap-2"><span class="text-emerald">✓</span> grounding + source citations</li>
+            <li class="flex items-center gap-2"><span class="text-emerald">✓</span> the held-out eval, unchanged</li>
+            <li class="flex items-center gap-2"><span class="text-emerald">✓</span> custody of who can change any of it</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <p class="mt-6 max-w-3xl text-slate-500 text-sm">The brain is a setting. You'll rent a different one next year. The trustworthy machine every brain plugs into is the part that lasts, and that's the platform.</p>
+  </section>
+
+  <!-- 7. STILL MISSING -->
+  <section class="py-16 md:py-24 reveal">
+    <h2 class="text-2xl md:text-4xl font-bold tracking-tight mb-8">What's Genuinely Still Missing</h2>
+    <div class="prose-lg max-w-3xl text-slate-300 text-lg">
+      <p><span class="text-amber font-medium">The self-improving loop isn't a native button yet.</span> The platform ships the eval that gates a change, and it ships an analytics layer that spots failure patterns and suggests fixes, in beta. The closed loop that proposes, gates, and keeps on its own is something you still assemble from those pieces. It's clearly where the platform is heading. It isn't a single feature you turn on today.</p>
+      <p><span class="text-amber font-medium">Custody of the safety layer has no native equivalent.</span> The idea that the thing which decides what "good" means must be held by someone the agent can't overrule, cryptographically, not by policy, is the one control on the map with no native home. Permissions and approvals get close. A real owner-held trust root for the guardrails themselves is the piece I'd most like the platform to grow, and the one I'm least able to claim it has.</p>
+      <p><span class="text-amber font-medium">One agent is not a product.</span> I proved the pattern on a single governed agent in a demo org. That's a reduction to practice, not a rollout. It shows the controls are real and native and compose. It doesn't show them at the scale a customer runs.</p>
+    </div>
+  </section>
+
+  <!-- 8. SO WHAT -->
+  <section class="py-16 md:py-24 reveal">
+    <h2 class="text-2xl md:text-4xl font-bold tracking-tight mb-8">So What, Then</h2>
+    <div class="prose-lg max-w-3xl text-slate-300 text-lg">
+      <p>The payoff of ten parts is one line, and Part 10 is where it stops being a slogan. Salesforce is the harness. The brains will keep changing hands, one lab this quarter and another the next, and that's fine, because the trustworthy machine every brain plugs into is the part that lasts, and that's the platform. I didn't argue my way there. I built a governed agent on native primitives, watched a held-out eval catch a real gap and go green after the fix, and swapped the model underneath it while every control held.</p>
+      <p>And it isn't only my claim. NVIDIA's research and Salesforce's own lab each published the same two ideas from the other direction while I was building: that the harness carries the value even when you swap the brain, and that an agent can safely propose its own improvements as long as an honest check it can't game decides what's kept. A partner's lab and our own, landing on the two claims I'd built to, without coordinating. That's about as good as outside proof gets.</p>
+      <p class="text-slate-400 text-base">This is a reduction to practice, not the shipped product, and the platform is already moving in this exact direction. That was the point. I built it to see where we're heading and to show it's real.</p>
+    </div>
+    <div class="mt-12 text-center">
+      <div class="font-mono text-lg md:text-2xl tracking-tight text-slate-100">Models think. <span class="text-cyan">Salesforce knows.</span> <span class="grad font-semibold">Trust compounds.</span></div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="border-t border-line mt-10">
+  <div class="max-w-5xl mx-auto px-6 py-12 text-slate-500 text-sm font-mono flex flex-col md:flex-row justify-between gap-4">
+    <span>Context Engineering Series · Part 10 · John Tehrani</span>
+    <span>Models think. Salesforce knows. Trust compounds.</span>
+  </div>
+</footer>
+
+<script>
+  const io = new IntersectionObserver((es) => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } }), { threshold: 0.12 });
+  document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+
+  // ---- micro-demo 1: the control -> native-primitive map (content grounding-verified) ----
+  const MAP = {
+    injection: { p: 'Einstein Trust Layer + grounding boundary', s: 'ga', d: 'External data is extracted as data, never as instructions. A hostile instruction sitting in a record field is inert.' },
+    egress:    { p: 'Trusted URLs allowlist', s: 'ga', d: 'The platform enforces a trusted-URL allowlist on agent responses to prevent injection; an unapproved link is replaced with URL_Redacted. This fires by default.' },
+    human:     { p: '"Require user confirmation" on the action', s: 'ga', d: 'A record-changing action pauses and asks a human to confirm before it runs. Nothing mutates unattended.' },
+    evidence:  { p: 'Agentforce Data Library + citations', s: 'ga', d: 'Answers are grounded in indexed CRM content and carry citations to the source they used.' },
+    eval:      { p: 'Agentforce Testing Center + held-out eval', s: 'ga', d: 'A frozen AiEvaluationDefinition run from the CLI. The gate that can fail — and in my build, it did, then passed after the fix.' },
+    model:     { p: 'Agent Script model override', s: 'ga', d: 'The model an agent runs on is a setting you can change per agent. Swap it; the controls around it do not move.' },
+    autonomy:  { p: 'Agent Optimizer (beta) + the assembled loop', s: 'beta', d: 'The platform ships the eval gate and a beta insight/suggestion engine. The closed propose-gate-keep loop is assembled on top today, not a single native button.' },
+    custody:   { p: 'no native equivalent yet', s: 'gap', d: 'An owner-held, cryptographic trust root over the guardrails themselves — so the agent cannot overrule what "good" means. Permissions and approvals get close; this specific control has no native home yet. The honest gap.' },
+  };
+  const badgeClass = { ga: 'b-ga', beta: 'b-beta', gap: 'b-gap' };
+  const badgeText  = { ga: 'GA', beta: 'beta', gap: 'no native yet' };
+  const detail = document.getElementById('mapDetail');
+  document.querySelectorAll('#mapRows .map-row').forEach(row => row.addEventListener('click', () => {
+    document.querySelectorAll('#mapRows .map-row').forEach(r => r.classList.remove('sel'));
+    row.classList.add('sel');
+    const m = MAP[row.dataset.m];
+    detail.innerHTML = `
+      <div class="flex items-center gap-3 mb-3">
+        <span class="badge ${badgeClass[m.s]}">${badgeText[m.s]}</span>
+        <span class="font-mono text-sm text-slate-200">${m.p}</span>
+      </div>
+      <div class="text-slate-400 text-sm leading-relaxed">${m.d}</div>`;
+  }));
+
+  // ---- micro-demo 2: swap the brain ----
+  const BRAINS = {
+    frontier: 'The reasoning is broad and general-purpose. Good for open-ended work, and it costs the most per call.',
+    crm:      'A smaller model tuned for CRM-shaped work. Often all the task needs, at a fraction of the cost — which is the point: the biggest brain usually isn\'t the requirement.',
+  };
+  const swapChanged = document.getElementById('swapChanged');
+  swapChanged.textContent = BRAINS.frontier;
+  document.querySelectorAll('#brains .swap-ctl').forEach(ctl => ctl.addEventListener('click', () => {
+    document.querySelectorAll('#brains .swap-ctl').forEach(c => c.classList.remove('on'));
+    ctl.classList.add('on');
+    swapChanged.textContent = BRAINS[ctl.dataset.brain];
+  }));
+</script>
+</body>
+</html>
