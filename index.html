@@ -141,6 +141,7 @@
     <h2 class="text-2xl md:text-4xl font-bold tracking-tight mb-6">Swap the Brain. The Harness Doesn't Move.</h2>
     <div class="prose-lg max-w-3xl text-slate-300 text-lg mb-8">
       <p>This is the whole thesis in one control. Change the model the agent runs on. Watch what changes, and more importantly, watch what doesn't.</p>
+      <p>On the platform this isn't a metaphor. Agentforce lets you set the model per agent, and per subagent, with one line of Agent Script, and through Bring Your Own LLM it runs a model from Bedrock, OpenAI, Azure, or Google, or any model you connect through an open connector, with the Trust Layer intact. So a mechanical subagent can run a small cheap model while the main agent stays frontier, and "swap the brain" is a setting, natively. <span class="font-mono text-xs text-slate-500">[GA · Agent Script model_config; BYOLLM via AI Models + LLM Open Connector]</span></p>
     </div>
     <div class="glass rounded-2xl p-6 md:p-8">
       <div class="flex flex-wrap gap-3 mb-8" id="brains">
@@ -151,6 +152,10 @@
         <div class="swap-ctl px-5 py-3" data-brain="crm">
           <div class="font-mono text-xs text-violet mb-1">the brain</div>
           <div class="text-slate-200 text-sm font-medium">A CRM-tuned model</div>
+        </div>
+        <div class="swap-ctl px-5 py-3" data-brain="subagent">
+          <div class="font-mono text-xs text-violet mb-1">a subagent's brain</div>
+          <div class="text-slate-200 text-sm font-medium">A small model, pinned per subagent</div>
         </div>
       </div>
       <div class="grid sm:grid-cols-2 gap-6">
@@ -216,7 +221,7 @@
     human:     { p: '"Require user confirmation" on the action', s: 'ga', d: 'A record-changing action pauses and asks a human to confirm before it runs. Nothing mutates unattended.' },
     evidence:  { p: 'Agentforce Data Library + citations', s: 'ga', d: 'Answers are grounded in indexed CRM content and carry citations to the source they used.' },
     eval:      { p: 'Agentforce Testing Center + held-out eval', s: 'ga', d: 'A frozen AiEvaluationDefinition run from the CLI. The gate that can fail — and in my build, it did, then passed after the fix.' },
-    model:     { p: 'Agent Script model override', s: 'ga', d: 'The model an agent runs on is a setting you can change per agent. Swap it; the controls around it do not move.' },
+    model:     { p: 'Agent Script model_config + BYOLLM', s: 'ga', d: 'Set the model per agent, and per subagent, with one line of model_config, over any Bring Your Own LLM provider (Bedrock, OpenAI, Azure, Google) or a model you connect through the LLM Open Connector. A mechanical subagent can run a small cheap model while the main agent stays frontier. Swap any of them, the controls around them do not move.' },
     autonomy:  { p: 'Agent Optimizer (beta) + the assembled loop', s: 'beta', d: 'The platform ships the eval gate and a beta insight/suggestion engine. The closed propose-gate-keep loop is assembled on top today, not a single native button.' },
     custody:   { p: 'no native equivalent yet', s: 'gap', d: 'An owner-held, cryptographic trust root over the guardrails themselves — so the agent cannot overrule what "good" means. Permissions and approvals get close; this specific control has no native home yet. The honest gap.' },
   };
@@ -239,6 +244,7 @@
   const BRAINS = {
     frontier: 'The reasoning is broad and general-purpose. Good for open-ended work, and it costs the most per call.',
     crm:      'A smaller model tuned for CRM-shaped work. Often all the task needs, at a fraction of the cost — which is the point: the biggest brain usually isn\'t the requirement.',
+    subagent: 'Selection isn\'t only for the main agent. Each subagent can pin its own model by task, so a mechanical step runs a small cheap model while the reasoning stays on a bigger one. That per-subagent pick is one line of model_config, native to the platform.',
   };
   const swapChanged = document.getElementById('swapChanged');
   swapChanged.textContent = BRAINS.frontier;
