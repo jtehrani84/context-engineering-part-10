@@ -354,16 +354,17 @@ answer comes back grounded in the record, with a citation to it. One
 test account has a prompt-injection planted in its Description, which
 the agent has to read as data and refuse. The only action that writes
 asks a human to confirm before it runs, and behind all of that sits a
-frozen, held-out eval that can fail, along with the way to fix what it
-catches (which never involves editing the eval).</p>
-<p>Everything here is a native Salesforce primitive. There’s no bolt-on
-harness in this build. The harness I wrote for Parts 1–9 was the proof
-of concept, run on local tools (Claude Code and OpenCode, plus an
-observe-only MeshMesh adapter and a Slackbot MCP server that’s built but
-not yet registered) so I could find out which controls actually matter.
-This spec is the platform version of that list. The portable,
-platform-agnostic harness code is deliberately <strong>not</strong> in
-the starter kit.</p>
+frozen eval that can fail, along with the way to fix what it catches
+(which never involves editing the eval).</p>
+<p>The build runs entirely in the org, on platform features plus a small
+Apex sanitizer at the data boundary. There’s no bolt-on harness in it.
+The map in section 2 marks the rows that are beta, not built here, or a
+gap. The harness I wrote for Parts 1–9 was the proof of concept, run on
+local tools (Claude Code and OpenCode, plus an observe-only MeshMesh
+adapter and a Slackbot MCP server that’s built but not yet registered)
+so I could find out which controls actually matter. This spec is the
+platform version of that list. The portable, platform-agnostic harness
+code is deliberately <strong>not</strong> in the starter kit.</p>
 <p>Every step in section 3 points into <a
 href="https://github.com/jtehrani84/claude-code-se-starter-kit/tree/main/reference-agent"><code class="nw">reference-agent/</code></a>,
 so keep it open while you build.</p>
@@ -398,7 +399,8 @@ Foundations or Agentforce 1</td>
 <td>Salesforce CLI (<code class="nw">sf</code>) with the agent commands</td>
 <td>Validate, preview, publish, activate, test</td>
 <td><code class="nw">sf agent --help</code> lists <code class="nw">validate</code>,
-<code class="nw">preview</code>, <code class="nw">publish</code>, <code class="nw">test</code></td>
+<code class="nw">preview</code>, <code class="nw">publish</code>, <code class="nw">activate</code>,
+<code class="nw">test</code></td>
 </tr>
 <tr>
 <td>Data 360 provisioned (for step 9)</td>
@@ -441,7 +443,8 @@ where it lives in the reference agent.</p>
 <td>The agent’s permission set: agent access, Apex class access, object
 + field permissions</td>
 <td>GA</td>
-<td><code>permissionsets/<wbr>Governed_Account_Assistant_User</code></td>
+<td><code>permissionsets/<wbr>Governed_Account_Assistant_User</code> (step 5;
+I haven’t run it as a non-admin user yet)</td>
 </tr>
 <tr>
 <td>Injection defense</td>
@@ -463,7 +466,8 @@ with <code class="nw">URL_Redacted</code></td>
 <td>Human-gated action</td>
 <td><code>require_user_confirmation: True</code> on the action</td>
 <td>GA</td>
-<td><code class="nw">log_account_note</code> in the <code class="nw">.agent</code></td>
+<td><code class="nw">log_account_note</code> in the <code class="nw">.agent</code> (set, but
+no run of mine has reached the platform’s prompt yet, see step 7)</td>
 </tr>
 <tr>
 <td>Evidence / grounding</td>
@@ -581,6 +585,12 @@ The preview below asks about Northwind Traders (demo), and that script
 is what creates it. It upserts by name, so running it again in Step 6 is
 harmless.</p>
 <pre><code class="language-bash"><span class="ln"><span class="nb">sf</span> <span class="nb">agent</span> <span class="nb">preview</span> <span class="nb">start</span> <span class="nb">--json</span> <span class="nb">-o</span> <span class="nb">demo</span> <span class="nb">--use-live-actions</span> <span class="nb">--authoring-bundle</span> <span class="nb">Part10_Governed_Account_Assistant</span></span><span class="ln"><span class="nb">sf</span> <span class="nb">agent</span> <span class="nb">preview</span> <span class="nb">send</span>  <span class="nb">--json</span> <span class="nb">-o</span> <span class="nb">demo</span> <span class="nb">--authoring-bundle</span> <span class="nb">Part10_Governed_Account_Assistant</span> <span class="nb">\</span></span><span class="ln">  <span class="nb">--session-id</span> <span class="nb">&lt;ID&gt;</span> <span class="nb">--utterance</span> <span class="nb">&quot;Give</span> <span class="nb">me</span> <span class="nb">a</span> <span class="nb">summary</span> <span class="nb">of</span> <span class="nb">the</span> <span class="nb">Northwind</span> <span class="nb">Traders</span> <span class="nb">(demo)</span> <span class="nb">account.&quot;</span></span><span class="ln"><span class="nb">sf</span> <span class="nb">agent</span> <span class="nb">preview</span> <span class="nb">end</span>   <span class="nb">--json</span> <span class="nb">-o</span> <span class="nb">demo</span> <span class="nb">--authoring-bundle</span> <span class="nb">Part10_Governed_Account_Assistant</span> <span class="nb">--session-id</span> <span class="nb">&lt;ID&gt;</span></span></code></pre>
+<p>Validate and preview both read the local authoring bundle in your
+project. You don’t deploy the bundle yourself; publish in Step 4 does
+that. <code>preview start --json</code> returns the session ID at
+<code class="nw">result.sessionId</code>, so pipe it through
+<code>jq -r .result.sessionId</code> to get the <code class="nw">&lt;ID&gt;</code>
+for the next two commands.</p>
 <p><strong>Always use <code class="nw">--use-live-actions</code>.</strong> Without
 it the preview runs in mock mode and the model <em>invents</em> the
 action output, which will send you debugging the wrong layer. Then read
@@ -685,8 +695,15 @@ Tracing data model on Data 360 (<code class="nw">AiAgentSession</code> →
 <code class="nw">AiAgentInteraction</code> → <code class="nw">AiAgentInteractionStep</code>).
 The audit trail keeps the masked prompt and toxicity scores beside
 it.</p>
-<p><strong>Proof:</strong> after a preview session, query the session in
-Data 360 and find your <code class="nw">get_account_summary</code> step in it.</p>
+<p><strong>Proof:</strong> after a preview session, wait about five
+minutes (collection runs on a five-minute cycle), then query the step
+DMO for your action:</p>
+<pre><code class="language-bash"><span class="ln"><span class="nb">sf</span> <span class="nb">data</span> <span class="nb">query</span> <span class="nb">-o</span> <span class="nb">demo</span> <span class="nb">-q</span> <span class="nb">&quot;SELECT</span> <span class="nb">ssot__Name__c,</span> <span class="nb">ssot__AiAgentInteractionStepType__c,</span> <span class="nb">ssot__StartTimestamp__c</span> <span class="nb">FROM</span> <span class="nb">ssot__AiAgentInteractionStep__dlm</span> <span class="nb">WHERE</span> <span class="nb">ssot__Name__c</span> <span class="nb">=</span> <span class="nb">&#39;get_account_summary&#39;</span> <span class="nb">ORDER</span> <span class="nb">BY</span> <span class="nb">ssot__StartTimestamp__c</span> <span class="nb">DESC</span> <span class="nb">LIMIT</span> <span class="nb">5&quot;</span></span></code></pre>
+<p>You should see a <code class="nw">get_account_summary</code> row of type
+<code class="nw">ACTION_STEP</code> stamped after your preview. The same DMOs
+(<code class="nw">ssot__AiAgentSession__dlm</code>,
+<code class="nw">ssot__AiAgentInteraction__dlm</code>) also open in Data 360 Query
+Editor.</p>
 <h3 id="step-10-confirm-link-egress-is-already-covered">Step 10: Confirm
 Link Egress Is Already Covered</h3>
 <p>The platform enforces a trusted-URL allowlist on agent responses: an
@@ -753,7 +770,11 @@ edited. Then re-run both suites yourself instead of taking the
 subagent’s word for it. Mine came back green, five of five and four of
 four.</li>
 </ol>
-<p>The real artifacts from that run are at <a href="https://github.com/jtehrani84/claude-code-se-starter-kit/tree/main/examples/cross-vendor-loop"><span class="useg">github.com/</span><wbr><span class="useg">jtehrani84/</span><wbr><span class="useg">claude-code-se-starter-kit/</span><wbr><span class="useg">tree/</span><wbr><span class="useg">main/</span><wbr><span class="useg">examples/</span><wbr><span class="useg">cross-vendor-loop</span></a>.</p>
+<p>The real artifacts from that run (the spec, both audits, the
+synthesis that became the fix plan, the four audit-derived tests, and
+both versions of the code) are at <a href="https://github.com/jtehrani84/claude-code-se-starter-kit/tree/main/examples/cross-vendor-loop"><span class="useg">github.com/</span><wbr><span class="useg">jtehrani84/</span><wbr><span class="useg">claude-code-se-starter-kit/</span><wbr><span class="useg">tree/</span><wbr><span class="useg">main/</span><wbr><span class="useg">examples/</span><wbr><span class="useg">cross-vendor-loop</span></a>,
+and its README has the commands to re-run both suites and watch v1
+fail.</p>
 <h2 id="5-what-this-build-doesnt-cover">5. What This Build Doesn’t
 Cover</h2>
 <p>The code loop in section 4 has only run on my laptop. On the platform

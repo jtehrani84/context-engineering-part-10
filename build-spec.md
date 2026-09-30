@@ -16,10 +16,10 @@ You'll stand up one governed employee agent in a demo org, the same one Part 10 
 proven on. Ask it about an account and the answer comes back grounded in the record, with a citation to
 it. One test account has a prompt-injection planted in its Description, which the agent has to read as
 data and refuse. The only action that writes asks a human to confirm before it runs, and behind all of
-that sits a frozen, held-out eval that can fail, along with the way to fix what it catches (which never
+that sits a frozen eval that can fail, along with the way to fix what it catches (which never
 involves editing the eval).
 
-Everything here is a native Salesforce primitive. There's no bolt-on harness in this build. The
+The build runs entirely in the org, on platform features plus a small Apex sanitizer at the data boundary. There's no bolt-on harness in it. The map in section 2 marks the rows that are beta, not built here, or a gap. The
 harness I wrote for Parts 1–9 was the proof of concept, run on local tools (Claude Code and OpenCode, plus an observe-only MeshMesh adapter
 and a Slackbot MCP server that's built but not yet registered) so I could find out which controls actually matter. This spec
 is the platform version of that list. The portable, platform-agnostic harness code is deliberately
@@ -35,7 +35,7 @@ so keep it open while you build.
 |----------------------------------|------------------------------------|------------------------------|
 | A **demo or sandbox** org with Agentforce and Einstein generative AI turned on | The agent, actions, and eval all run in the org | Setup → Agentforce Agents opens |
 | Enterprise, Performance, Unlimited, or Developer edition with Foundations or Agentforce 1 | Edition line the Agentforce features in this spec ship on | Setup → Company Information |
-| Salesforce CLI (`sf`) with the agent commands | Validate, preview, publish, activate, test | `sf agent --help` lists `validate`, `preview`, `publish`, `test` |
+| Salesforce CLI (`sf`) with the agent commands | Validate, preview, publish, activate, test | `sf agent --help` lists `validate`, `preview`, `publish`, `activate`, `test` |
 | Data 360 provisioned (for step 9) | Session tracing and the audit trail land there | Setup → Einstein Audit, Analytics, and Monitoring Setup |
 | The reference agent's source, at [github.com/jtehrani84/claude-code-se-starter-kit/tree/main/reference-agent](https://github.com/jtehrani84/claude-code-se-starter-kit/tree/main/reference-agent) | Every command in section 3 runs from that folder, against its Apex, Agent Script, permission set, seed script, and held-out eval | Clone the repo, and `reference-agent/` should hold `force-app/`, `scripts/`, and `tests/` |
 
@@ -47,10 +47,10 @@ Each control the series taught, the GA primitive it maps to, and where it lives 
 
 | Control | Native primitive | Status (Sept 2026) | In the reference agent |
 |---------------|---------------------------------|-----------------|-----------------------------------|
-| Least authority | The agent's permission set: agent access, Apex class access, object + field permissions | GA | `permissionsets/Governed_Account_Assistant_User` |
+| Least authority | The agent's permission set: agent access, Apex class access, object + field permissions | GA | `permissionsets/Governed_Account_Assistant_User` (step 5; I haven't run it as a non-admin user yet) |
 | Injection defense | Instructions that treat record text as data, plus sanitizing at the data boundary in Apex | Custom code on GA primitives, covers the tested injection patterns | `.agent` instructions + `GetAccountSummary.sanitizeDescription` |
 | Egress through links in responses | Trusted URLs allowlist: an unapproved link in a response is replaced with `URL_Redacted` | GA, on by default | platform behavior, nothing to build |
-| Human-gated action | `require_user_confirmation: True` on the action | GA | `log_account_note` in the `.agent` |
+| Human-gated action | `require_user_confirmation: True` on the action | GA | `log_account_note` in the `.agent` (set, but no run of mine has reached the platform's prompt yet, see step 7) |
 | Evidence / grounding | Actions that return the source record, cited in the answer | GA | `GetAccountSummary` returns `source` |
 | The eval that can fail | Agentforce Testing Center suite, frozen before tuning | GA | `tests/…-heldout.yaml` |
 | Swap the model | `model_config` per agent, router, or subagent; Bring Your Own LLM for other providers, called from a custom action | GA | step 8 (optional) |
@@ -116,6 +116,8 @@ sf agent preview send  --json -o demo --authoring-bundle Part10_Governed_Account
   --session-id <ID> --utterance "Give me a summary of the Northwind Traders (demo) account."
 sf agent preview end   --json -o demo --authoring-bundle Part10_Governed_Account_Assistant --session-id <ID>
 ```
+
+Validate and preview both read the local authoring bundle in your project. You don't deploy the bundle yourself; publish in Step 4 does that. `preview start --json` returns the session ID at `result.sessionId`, so pipe it through `jq -r .result.sessionId` to get the `<ID>` for the next two commands.
 
 **Always use `--use-live-actions`.** Without it the preview runs in mock mode and the model *invents* the
 action output, which will send you debugging the wrong layer. Then read the trace under
@@ -217,8 +219,15 @@ error then lands in the Session Tracing data model on Data 360 (`AiAgentSession`
 `AiAgentInteraction` → `AiAgentInteractionStep`). The audit trail keeps the masked prompt and toxicity
 scores beside it.
 
-**Proof:** after a preview session, query the session in Data 360 and find your `get_account_summary`
-step in it.
+**Proof:** after a preview session, wait about five minutes (collection runs on a five-minute cycle), then
+query the step DMO for your action:
+
+```bash
+sf data query -o demo -q "SELECT ssot__Name__c, ssot__AiAgentInteractionStepType__c, ssot__StartTimestamp__c FROM ssot__AiAgentInteractionStep__dlm WHERE ssot__Name__c = 'get_account_summary' ORDER BY ssot__StartTimestamp__c DESC LIMIT 5"
+```
+
+You should see a `get_account_summary` row of type `ACTION_STEP` stamped after your preview. The same
+DMOs (`ssot__AiAgentSession__dlm`, `ssot__AiAgentInteraction__dlm`) also open in Data 360 Query Editor.
 
 ### Step 10: Confirm Link Egress Is Already Covered
 
@@ -269,8 +278,10 @@ you can reproduce it:
    edited. Then re-run both suites yourself instead of taking the subagent's word for it. Mine came back
    green, five of five and four of four.
 
-The real artifacts from that run are at
-[github.com/jtehrani84/claude-code-se-starter-kit/tree/main/examples/cross-vendor-loop](https://github.com/jtehrani84/claude-code-se-starter-kit/tree/main/examples/cross-vendor-loop).
+The real artifacts from that run (the spec, both audits, the synthesis that became the fix plan, the four
+audit-derived tests, and both versions of the code) are at
+[github.com/jtehrani84/claude-code-se-starter-kit/tree/main/examples/cross-vendor-loop](https://github.com/jtehrani84/claude-code-se-starter-kit/tree/main/examples/cross-vendor-loop),
+and its README has the commands to re-run both suites and watch v1 fail.
 
 ## 5. What This Build Doesn't Cover
 
