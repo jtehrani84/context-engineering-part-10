@@ -4,7 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Salesforce Is the Harness — Context Engineering, Part 10</title>
-<meta name="description" content="Part 10, the capstone of the Context Engineering series: every control the harness taught me, expressed as a native platform primitive — built and proven on a real governed agent, not diagrammed. Models think. Salesforce knows. Trust compounds." />
+<meta name="description" content="Part 10, the capstone of the Context Engineering series: a harness reduced to practice on local tools, mapped control by control onto generally available Salesforce primitives, and proven on a real governed agent. Models think. Salesforce knows. Trust compounds." />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
@@ -72,7 +72,7 @@
       Salesforce Is<br class="hidden md:block" /> the <span class="grad">Harness</span>
     </h1>
     <p class="mt-8 max-w-3xl text-lg md:text-2xl text-slate-300 font-light leading-relaxed">
-      Nine parts built a harness as my own scaffold, a thing beside the platform. Part 10 is where it stops being mine. Every control I taught it has a home in the platform already, and I stopped arguing that and went and built one governed agent that proves it, on native primitives, running for real.
+      Nine parts built a harness on local tools, my own proof of concept beside the platform. Part 10 is where it stops being mine. Every control I taught it has a home in Salesforce already, most of them generally available, and I stopped arguing that and went and built one governed agent that proves it, on native primitives, running for real.
     </p>
     <div class="mt-10 flex flex-wrap gap-x-6 gap-y-2 font-mono text-xs md:text-sm text-slate-400">
       <span>every control → a native primitive</span><span class="rule">·</span>
@@ -96,7 +96,8 @@
   <section class="py-16 md:py-24 reveal">
     <h2 class="text-2xl md:text-4xl font-bold tracking-tight mb-8">From My Scaffold to the Platform</h2>
     <div class="prose-lg max-w-3xl text-slate-300 text-lg">
-      <p>For nine parts the harness was a scaffold I built and held to the side. Useful, portable, honest about its limits, but mine, and separate. The thing I kept noticing while building it is that I wasn't inventing these controls out of nothing. Each one had a shadow already in the platform. A place it wanted to live. Part 10's claim is simple and it's the whole point of the title: the controls belong in Salesforce as native primitives, not beside it as my bolt-on. So this part isn't an argument. It's a build. Click through the map, then watch it run.</p>
+      <p>For nine parts the harness was a scaffold I built and held to the side. It runs on my laptop across four tools. Claude Code is where I work and where Opus does the orchestrating, and OpenCode is how the harness reaches models from other labs. MeshMesh, the AI-native Salesforce implementation platform whose team joined Salesforce this summer, is the third place the same core runs. Slackbot is the front door, the one node wired to call in over MCP instead of being called.</p>
+      <p>I built it outside the platform on purpose, because that was the fastest way to learn which controls actually matter once an agent does real work. So read Parts 1 through 9 as a proof of concept, a reduction to practice with local tools. The version a customer would run is built from generally available pieces of Salesforce: Agentforce agents and subagents, a model per subagent through Bring Your Own LLM, agent actions and MCP tools, the Trust Layer, the agent's own permissions, and session tracing on Data 360. Every control I built by hand turned out to have a place it wanted to live in the platform. Click through the map, then watch one run.</p>
     </div>
   </section>
 
@@ -105,16 +106,22 @@
     <div class="font-mono text-xs uppercase eyebrow text-emerald mb-3">Interactive · the map</div>
     <h2 class="text-2xl md:text-4xl font-bold tracking-tight mb-6">Every Control Has a Native Home</h2>
     <div class="prose-lg max-w-3xl text-slate-300 text-lg mb-8">
-      <p>Each control the harness taught me, and the native Salesforce primitive it maps to. Click one. The badge is honest: most are generally available today, one is still maturing, and one genuinely has no native equivalent yet, and I say so.</p>
+      <p>Each control the harness taught me, and the native Salesforce primitive it maps to, in roughly the order a request touches them. Click one. Most are generally available today, three are in beta, and one has no native equivalent yet, and the badge says which.</p>
     </div>
     <div class="grid md:grid-cols-2 gap-6">
       <div class="space-y-2" id="mapRows">
+        <div class="map-row p-3 flex items-center justify-between" data-m="frontdoor"><span class="text-slate-200 text-sm">the front door (Slack)</span><span class="badge b-beta">beta</span></div>
+        <div class="map-row p-3 flex items-center justify-between" data-m="orchestrate"><span class="text-slate-200 text-sm">orchestrate + delegate</span><span class="badge b-ga">GA</span></div>
+        <div class="map-row p-3 flex items-center justify-between" data-m="model"><span class="text-slate-200 text-sm">swap the model</span><span class="badge b-ga">GA</span></div>
+        <div class="map-row p-3 flex items-center justify-between" data-m="tools"><span class="text-slate-200 text-sm">tools the agent can call</span><span class="badge b-ga">GA</span></div>
+        <div class="map-row p-3 flex items-center justify-between" data-m="authority"><span class="text-slate-200 text-sm">least authority</span><span class="badge b-ga">GA</span></div>
         <div class="map-row p-3 flex items-center justify-between" data-m="injection"><span class="text-slate-200 text-sm">injection defense</span><span class="badge b-ga">GA</span></div>
         <div class="map-row p-3 flex items-center justify-between" data-m="egress"><span class="text-slate-200 text-sm">egress / data leaving</span><span class="badge b-ga">GA</span></div>
         <div class="map-row p-3 flex items-center justify-between" data-m="human"><span class="text-slate-200 text-sm">human-gated action</span><span class="badge b-ga">GA</span></div>
         <div class="map-row p-3 flex items-center justify-between" data-m="evidence"><span class="text-slate-200 text-sm">evidence / grounding</span><span class="badge b-ga">GA</span></div>
+        <div class="map-row p-3 flex items-center justify-between" data-m="observe"><span class="text-slate-200 text-sm">observability / the record</span><span class="badge b-ga">GA</span></div>
         <div class="map-row p-3 flex items-center justify-between" data-m="eval"><span class="text-slate-200 text-sm">the eval that can fail</span><span class="badge b-ga">GA</span></div>
-        <div class="map-row p-3 flex items-center justify-between" data-m="model"><span class="text-slate-200 text-sm">swap the model</span><span class="badge b-ga">GA</span></div>
+        <div class="map-row p-3 flex items-center justify-between" data-m="judge"><span class="text-slate-200 text-sm">a judge from another lab</span><span class="badge b-beta">beta</span></div>
         <div class="map-row p-3 flex items-center justify-between" data-m="autonomy"><span class="text-slate-200 text-sm">autonomous improvement</span><span class="badge b-beta">beta</span></div>
         <div class="map-row p-3 flex items-center justify-between" data-m="custody"><span class="text-slate-200 text-sm">custody of the safety layer</span><span class="badge b-gap">no native yet</span></div>
       </div>
@@ -122,7 +129,7 @@
         <div class="text-slate-500 text-sm font-mono">Select a control to see where it lives in the platform.</div>
       </div>
     </div>
-    <p class="mt-6 max-w-3xl text-slate-500 text-sm">Every "GA" claim here was checked against the product documentation before it went on the page, not written from memory. The two honest edges, the maturing one and the missing one, are the parts that make the map worth trusting.</p>
+    <p class="mt-6 max-w-3xl text-slate-500 text-sm">Every badge here was checked against the Salesforce and Slack documentation as of late September 2026 before it went on the page. The beta rows and the missing one are the parts that make the map worth trusting.</p>
   </section>
 
   <!-- 5. BUILT NOT DIAGRAMMED -->
@@ -142,6 +149,7 @@
     <div class="prose-lg max-w-3xl text-slate-300 text-lg mb-8">
       <p>This is the whole thesis in one control. Change the model the agent runs on. Watch what changes, and more importantly, watch what doesn't.</p>
       <p>On the platform this isn't a metaphor. Agentforce lets you set the model per agent, and per subagent, with one line of Agent Script, and through Bring Your Own LLM it runs a model from Bedrock, OpenAI, Azure, or Google, or any model you connect through an open connector, with the Trust Layer intact. So a mechanical subagent can run a small cheap model while the main agent stays frontier, and "swap the brain" is a setting, natively. <span class="font-mono text-xs text-slate-500">[GA · Agent Script model_config; BYOLLM via AI Models + LLM Open Connector]</span></p>
+      <p>I saw it happen unplanned in Part 9's code loop. One of the auditing labs timed out mid-run, the router gave the job to another lab, and nothing downstream noticed, because every finding still had to survive the same failing tests, whichever lab raised it.</p>
     </div>
     <div class="glass rounded-2xl p-6 md:p-8">
       <div class="flex flex-wrap gap-3 mb-8" id="brains">
@@ -178,12 +186,26 @@
     <p class="mt-6 max-w-3xl text-slate-500 text-sm">The brain is a setting. You'll rent a different one next year. The trustworthy machine every brain plugs into is the part that lasts, and that's the platform.</p>
   </section>
 
+  <!-- 6b. WHAT IT MEANS FOR A CUSTOMER -->
+  <section class="py-16 md:py-24 reveal">
+    <div class="font-mono text-xs uppercase eyebrow text-emerald mb-3">For the customer</div>
+    <h2 class="text-2xl md:text-4xl font-bold tracking-tight mb-8">What This Means If You Run Salesforce</h2>
+    <div class="prose-lg max-w-3xl text-slate-300 text-lg">
+      <p>You don't have to build what I built. Getting this working locally took four tools, a model gateway, an MCP server I wrote myself, and a lot of glue code, and there are still checks in it that only I can vouch for. A customer shouldn't need any of that. Each control on the map has a native home, most of them generally available, on the platform that already holds the customer's data, their permissions, and their processes.</p>
+      <p>It also takes the model decision off the critical path. Which lab is ahead changes every few months, and nobody should have to bet five years of governance on this quarter's leader. When the model is a per-subagent setting and the checks live around it, picking a brain turns into a decision you can revisit next quarter.</p>
+      <p class="pull pl-5 text-slate-200 text-xl font-light my-8">The loop from Part 9 translates almost piece by piece, at least on paper. Opus handing the build to a Sonnet subagent is what Multi-Agent Orchestration does inside an org. For the reviewer from another lab you'd pin a subagent to a different provider, or write a Testing Center scorer and pick its judge model yourself. My failing tests would become a Testing Center suite, and that suite can now check that the orchestrator handed off to the right subagent while Session Tracing records each step. I've only run that loop on my laptop, though, so it's a mapping I've checked against the docs and not something I've watched run in an org yet.</p>
+      <p>What I have watched in a real org is the part a security team asks about first. The injection defense, the link redaction, and the confirmation gate all fired on the governed agent I built for this part. The rest of that list is documented and generally available: the agent runs as its own user with object access set by its permission set, Gateway policies cap and restrict what it can call, and every turn and action is traced with the Trust Layer's audit trail beside it. When I built those controls by hand they were the most fragile part of the harness.</p>
+    </div>
+  </section>
+
   <!-- 7. STILL MISSING -->
   <section class="py-16 md:py-24 reveal">
     <h2 class="text-2xl md:text-4xl font-bold tracking-tight mb-8">What's Genuinely Still Missing</h2>
     <div class="prose-lg max-w-3xl text-slate-300 text-lg">
       <p><span class="text-amber font-medium">The self-improving loop isn't a native button yet.</span> The platform ships the eval that gates a change, and it ships an analytics layer that spots failure patterns and suggests fixes, in beta. The closed loop that proposes, gates, and keeps on its own is something you still assemble from those pieces. It's clearly where the platform is heading. It isn't a single feature you turn on today.</p>
       <p><span class="text-amber font-medium">Custody of the safety layer has no native equivalent.</span> The idea that the thing which decides what "good" means must be held by someone the agent can't overrule, cryptographically, not by policy, is the one control on the map with no native home. Permissions and approvals get close. A real owner-held trust root for the guardrails themselves is the piece I'd most like the platform to grow, and the one I'm least able to claim it has.</p>
+      <p><span class="text-amber font-medium">The front door is still in beta.</span> Slack announced the Slackbot MCP client as coming soon, starting with a beta, so the node where a request arrives from Slack is ahead of what ships today. My own MCP server passes its tests but isn't registered in a workspace yet, and it uses a static token, where MCP for Agentforce accepts OAuth client credentials or no authentication, so that would have to change before Agentforce itself could call it.</p>
+      <p><span class="text-amber font-medium">Orchestration stops at the org boundary.</span> Multi-Agent Orchestration connects agents inside one Salesforce org. Working with agents outside it, whatever platform they run on, is what MuleSoft's Agent Fabric is for, and that's a separate product that works over A2A and MCP. My harness crosses those lines on a laptop, and on the platform the same reach spans two products.</p>
       <p><span class="text-amber font-medium">One agent is not a product.</span> I proved the pattern on a single governed agent in a demo org. That's a reduction to practice, not a rollout. It shows the controls are real and native and compose. It doesn't show them at the scale a customer runs.</p>
     </div>
   </section>
@@ -216,6 +238,12 @@
 
   // ---- micro-demo 1: the control -> native-primitive map (content grounding-verified) ----
   const MAP = {
+    frontdoor:   { p: 'Slackbot MCP client', s: 'beta', d: 'Slack describes the Slackbot MCP client as the way to integrate any app or agent directly into Slackbot, so Slackbot can route a request to a specialized agent and bring the result back into the thread. Slack announced it as coming soon, starting with a beta.' },
+    orchestrate: { p: 'Multi-Agent Orchestration + Agent Script subagents', s: 'ga', d: 'An orchestrator agent delegates to connected subagents inside one org, and Testing Center can assert that the handoff went to the right one. It is Opus handing the build to a Sonnet subagent, expressed natively. Generally available as of the summer 2026 releases.' },
+    tools:       { p: 'Agent actions + MCP for Agentforce', s: 'ga', d: 'Actions backed by a flow, Apex, or a prompt template, plus third-party MCP server tools. Agentforce has an MCP client built in: register a server in Agentforce Registry, allowlist the tools you want, and each one becomes an agent action like any other.' },
+    authority:   { p: 'Agent user permissions + Agentforce Gateway policies', s: 'ga', d: 'The agent runs as its own user, and its object access comes from the permission set you assign it, handled the same way as for any user. Gateway policies add access control, usage limits, and tool restrictions on the external APIs and MCP servers it calls.' },
+    observe:     { p: 'Session Tracing + Trust Layer audit trail', s: 'ga', d: 'Every turn, reasoning step, action, message, and error lands in a unified data model on Data 360. The Trust Layer audit trail keeps the masked prompt and the toxicity scores beside it, and a session trace can be exported in OpenTelemetry format (beta).' },
+    judge:       { p: 'Custom scorers with an LLM judge you choose', s: 'beta', d: 'Testing Center scorers let you decide which AI model does the judging, which is the seat a different lab would take for the cross-vendor check from Part 9. Custom scorers are in beta, and I have not confirmed which models the judge picker lists.' },
     injection: { p: 'Einstein Trust Layer + grounding boundary', s: 'ga', d: 'External data is extracted as data, never as instructions. A hostile instruction sitting in a record field is inert.' },
     egress:    { p: 'Trusted URLs allowlist', s: 'ga', d: 'The platform enforces a trusted-URL allowlist on agent responses to prevent injection; an unapproved link is replaced with URL_Redacted. This fires by default.' },
     human:     { p: '"Require user confirmation" on the action', s: 'ga', d: 'A record-changing action pauses and asks a human to confirm before it runs. Nothing mutates unattended.' },
