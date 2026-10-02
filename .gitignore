@@ -1,0 +1,7 @@
+.sfdx/
+.sf/
+__pycache__/
+*.pyc
+.DS_Store
+node_modules/
+slack-dm-draft.md

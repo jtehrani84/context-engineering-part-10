@@ -6,7 +6,7 @@ Status as of **2026-09-29** (Salesforce Winter ’27, release 264), with the Sla
 the rows you depend on against the docs before you demo or quote them (recipe at the end).*
 
 *This is the public edition, and the working source for every step is at
-[github.com/jtehrani84/claude-code-se-starter-kit/tree/main/reference-agent](https://github.com/jtehrani84/claude-code-se-starter-kit/tree/main/reference-agent).*
+[github.com/jtehrani84/context-engineering-part-10/tree/main/reference-agent](https://github.com/jtehrani84/context-engineering-part-10/tree/main/reference-agent).*
 
 ---
 
@@ -26,7 +26,7 @@ is the platform version of that list. The portable, platform-agnostic harness co
 **not** in the starter kit.
 
 Every step in section 3 points into
-[`reference-agent/`](https://github.com/jtehrani84/claude-code-se-starter-kit/tree/main/reference-agent),
+[`reference-agent/`](https://github.com/jtehrani84/context-engineering-part-10/tree/main/reference-agent),
 so keep it open while you build.
 
 ## 1. Prerequisites
@@ -37,7 +37,7 @@ so keep it open while you build.
 | Enterprise, Performance, Unlimited, or Developer edition with Foundations or Agentforce 1 | Edition line the Agentforce features in this spec ship on | Setup → Company Information |
 | Salesforce CLI (`sf`) with the agent commands | Validate, preview, publish, activate, test | `sf agent --help` lists `validate`, `preview`, `publish`, `activate`, `test` |
 | Data 360 provisioned (for step 9) | Session tracing and the audit trail land there | Setup → Einstein Audit, Analytics, and Monitoring Setup |
-| The reference agent's source, at [github.com/jtehrani84/claude-code-se-starter-kit/tree/main/reference-agent](https://github.com/jtehrani84/claude-code-se-starter-kit/tree/main/reference-agent) | Every command in section 3 runs from that folder, against its Apex, Agent Script, permission set, seed script, and held-out eval | Clone the repo, and `reference-agent/` should hold `force-app/`, `scripts/`, and `tests/` |
+| The reference agent's source, at [github.com/jtehrani84/context-engineering-part-10/tree/main/reference-agent](https://github.com/jtehrani84/context-engineering-part-10/tree/main/reference-agent) | Every command in section 3 runs from that folder, against its Apex, Agent Script, permission set, seed script, and held-out eval | Clone the repo, and `reference-agent/` should hold `force-app/`, `scripts/`, and `tests/` |
 
 **Never build this in a production org first.** Every write in this spec goes to a demo org.
 
@@ -280,7 +280,7 @@ you can reproduce it:
 
 The real artifacts from that run (the spec, both audits, the synthesis that became the fix plan, the four
 audit-derived tests, and both versions of the code) are at
-[github.com/jtehrani84/claude-code-se-starter-kit/tree/main/examples/cross-vendor-loop](https://github.com/jtehrani84/claude-code-se-starter-kit/tree/main/examples/cross-vendor-loop),
+[github.com/jtehrani84/context-engineering-part-10/tree/main/examples/cross-vendor-loop](https://github.com/jtehrani84/context-engineering-part-10/tree/main/examples/cross-vendor-loop),
 and its README has the commands to re-run both suites and watch v1 fail.
 
 ## 5. What This Build Doesn't Cover

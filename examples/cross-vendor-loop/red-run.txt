@@ -1,0 +1,7 @@
+RateLimiter — audit-derived edge oracle
+  [31m✗[0m Sol#3 R8: no NaN from Infinity*0 refill (still removes the initial token)
+  [31m✗[0m Sol#2 R2: sub-epsilon refill accumulated across steps (tokens rose above 1)
+  [31m✗[0m Sol#1 R8: capacity beyond MAX_SAFE_INTEGER is rejected as uncountable
+  [31m✗[0m Gemini#1 R4: NaN clock does not poison tokens (removal still works)
+
+[31mFAIL[0m — 0 passed, 4 failed
