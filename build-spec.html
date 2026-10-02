@@ -340,9 +340,10 @@ Spec: A Governed Agentforce Agent on GA Primitives</h1>
 1–10). The series explains why each control matters. This doc tells you
 what to build, in what order, and how to prove each piece works. Status
 as of <strong>2026-09-29</strong> (Salesforce Winter ’27, release 264),
-with the Slack row re-checked on 2026-09-30. GA and beta labels move
-every release, so re-check the rows you depend on against the docs
-before you demo or quote them (recipe at the end).</em></p>
+with the Slack row re-checked on 2026-09-30 and the judge and model rows
+on 2026-10-02. GA and beta labels move every release, so re-check the
+rows you depend on against the docs before you demo or quote them
+(recipe at the end).</em></p>
 <p><em>This is the public edition, and the working source for every step
 is at <a href="https://github.com/jtehrani84/context-engineering-part-10/tree/main/reference-agent"><span class="useg">github.com/</span><wbr><span class="useg">jtehrani84/</span><wbr><span class="useg">context-engineering-part-10/</span><wbr><span class="useg">tree/</span><wbr><span class="useg">main/</span><wbr><span class="useg">reference-agent</span></a>.</em></p>
 <hr />
@@ -484,7 +485,9 @@ no run of mine has reached the platform’s prompt yet, see step 7)</td>
 <tr>
 <td>Swap the model</td>
 <td><code class="nw">model_config</code> per agent, router, or subagent; Bring Your
-Own LLM for other providers, called from a custom action</td>
+Own LLM for other providers, called from a custom action (the
+employee-agent considerations page says BYO isn’t supported for employee
+agents, see step 8)</td>
 <td>GA</td>
 <td>step 8 (optional)</td>
 </tr>
@@ -509,8 +512,13 @@ Gateway policies</td>
 </tr>
 <tr>
 <td>A judge from another lab</td>
-<td>Testing Center custom scorers, where you choose the judge model</td>
-<td><strong>Beta</strong></td>
+<td>A reviewer subagent pinned to another provider with
+<code class="nw">model_config</code>; custom scorers (through the API the judge is
+the model of the prompt template the scorer uses; the UI’s judge picker
+is beta)</td>
+<td>Subagent pin and scorers defined through the API: GA. Building
+scorers in the Testing Center UI: <strong>Beta</strong> (re-checked
+2026-10-02)</td>
 <td>not built here (see step 11)</td>
 </tr>
 <tr>
@@ -680,7 +688,16 @@ LLM Open Connector). The developer docs say a BYOLLM request still runs
 through the Trust Layer. Setup’s model page adds that Agentforce itself
 is limited to a few model options, and that a custom action (a prompt
 template, Apex, or the Models API) can reference any Salesforce-managed
-or BYO model, so a BYO model belongs in an action.</p>
+or BYO model, so a BYO model belongs in an action. This agent is an
+employee agent, though, and <em>Considerations for Agentforce Employee
+Agent</em> says bringing your own model isn’t supported there, but
+custom actions that run prompt templates can use any Salesforce-managed
+model. The same page also lists only GPT-4o for reasoning, which reads
+older than the model-option page, so treat that conflict as open and
+confirm the model pin in your org. Check that page for your agent type
+before you plan on BYO (re-checked 2026-10-02). A model override on a
+subagent also doesn’t change the model that a prompt template inside an
+action uses.</p>
 <p><strong>Proof:</strong> validate (step 2), publish and activate (step
 4), then re-run step 7. The eval tests the latest active version, so an
 edit you haven’t published never gets graded. A model change is a new
@@ -730,10 +747,14 @@ MCP server in Agentforce Registry, allowlist its tools, and use each one
 as an agent action. It accepts Streamable HTTP servers with OAuth client
 credentials or no auth, tools only. Put Agentforce Gateway policies
 (usage limits, tool restrictions) on any server you connect.</li>
-<li><strong>A judge from another lab (beta).</strong> Testing Center
-custom scorers let you pick which model does the judging. That’s the
-native seat for a cross-vendor check. I haven’t confirmed which models
-the picker lists.</li>
+<li><strong>A judge from another lab.</strong> Pin a reviewer subagent
+to a model from another provider with <code class="nw">model_config</code> (GA), or
+write a custom scorer. Scorers defined through the API are generally
+available; building one in the Testing Center UI in Agentforce Studio,
+where you pick which model does the judging, is beta. Either is the
+native seat for a cross-vendor check, and both are worth checking
+against your agent type (step 8). I haven’t confirmed which models the
+picker lists.</li>
 </ul>
 <h2 id="4-the-build-loop-with-claude-code">4. The Build Loop, with
 Claude Code</h2>
@@ -782,7 +803,7 @@ it would be Multi-Agent Orchestration, a subagent pinned to another
 provider, and a custom-scorer judge, and I’ve checked that mapping
 against the docs without running it end to end in an org yet.</p>
 <p>This build doesn’t depend on the Slack front door. Slack’s help
-center now lists the Slackbot MCP client as available on all plans: a
+center lists the Slackbot MCP client as available on all plans: a
 developer adds an MCP server to a Slack app, and once it’s installed,
 Slackbot can call that server’s tools. Wiring this agent into Slackbot
 is the next build, and this spec doesn’t cover it yet. The other open
@@ -818,7 +839,11 @@ developer.salesforce.com/docs/ai/agentforce/guide/ascript-model.html</li>
 <li>Bring Your Own LLM + Trust Layer: <em>Supported Models</em>,
 developer.salesforce.com/docs/ai/agentforce/guide/supported-models.html;
 <em>Add a Foundation Model</em> (help.salesforce.com,
-<code>data.c360_a_ai_foundation_models_create</code>)</li>
+<code>data.c360_a_ai_foundation_models_create</code>); BYO and employee
+agents: <em>Considerations for Agentforce Employee Agent</em>
+<span class="glue">(<code>ai.agent_employee_agent_considerations</code>)</span>; subagent override
+vs prompt templates: <em>Choosing an AI Model for a Subagent</em>
+<span class="glue">(<code class="nw">ai.agent_subagents_model</code>)</span>. Re-checked 2026-10-02.</li>
 <li>Agent user object permissions: <em>Configure Service Agent
 Access</em> <span class="glue">(<code class="nw">ai.agent_user</code>)</span>; employee agent access via
 permission sets: <em>Manage Employee Agent Access</em></li>
@@ -827,10 +852,15 @@ permission sets: <em>Manage Employee Agent Access</em></li>
 Observability Infrastructure</em></li>
 <li>Trust Layer audit trail: <em>Audit Trail</em>
 <span class="glue">(<code class="nw">ai.generative_ai_audit_trail</code>)</span></li>
-<li>Testing Center + custom scorers (beta): <em>Agentforce Testing
-Center</em>, <em>Create Custom Scorers</em>, release note <em>Agentforce
-Observability: Refined Agent Analytics and Custom Scorers
-(Beta)</em></li>
+<li>Testing Center + custom scorers (API GA, UI beta): <em>Agentforce
+Testing Center</em>; <em>Create Custom Scorers</em>
+(<code>ai.agent_studio_testing_center_custom_evaluations</code>, New
+Testing Center in Agentforce Studio, Beta); <em>Scorers and Custom
+Scorers</em> (<code>ai.generative_ai_optimize_scorers</code>: “While
+creating scorers via API is generally available, creating scorers via
+the UI is a beta service”); release note <em>Agentforce Observability:
+Refined Agent Analytics and Custom Scorers (Beta)</em>. Re-checked
+2026-10-02.</li>
 <li>Multi-Agent Orchestration (GA): release note <em>Extend Agentforce
 Solutions with Multi-Agent Orchestration (Generally Available)</em>;
 limits in <em>Multi-Agent Orchestration</em>

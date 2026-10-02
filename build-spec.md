@@ -2,7 +2,7 @@
 
 *The buildable companion to the Context Engineering series (Parts 1–10). The series explains why each
 control matters. This doc tells you what to build, in what order, and how to prove each piece works.
-Status as of **2026-09-29** (Salesforce Winter ’27, release 264), with the Slack row re-checked on 2026-09-30. GA and beta labels move every release, so re-check
+Status as of **2026-09-29** (Salesforce Winter ’27, release 264), with the Slack row re-checked on 2026-09-30 and the judge and model rows on 2026-10-02. GA and beta labels move every release, so re-check
 the rows you depend on against the docs before you demo or quote them (recipe at the end).*
 
 *This is the public edition, and the working source for every step is at
@@ -53,11 +53,11 @@ Each control the series taught, the GA primitive it maps to, and where it lives 
 | Human-gated action | `require_user_confirmation: True` on the action | GA | `log_account_note` in the `.agent` (set, but no run of mine has reached the platform's prompt yet, see step 7) |
 | Evidence / grounding | Actions that return the source record, cited in the answer | GA | `GetAccountSummary` returns `source` |
 | The eval that can fail | Agentforce Testing Center suite, frozen before tuning | GA | `tests/…-heldout.yaml` |
-| Swap the model | `model_config` per agent, router, or subagent; Bring Your Own LLM for other providers, called from a custom action | GA | step 8 (optional) |
+| Swap the model | `model_config` per agent, router, or subagent; Bring Your Own LLM for other providers, called from a custom action (the employee-agent considerations page says BYO isn't supported for employee agents, see step 8) | GA | step 8 (optional) |
 | Observability / the record | Session Tracing on Data 360 + the Trust Layer audit trail | GA (OTel export beta) | step 9 |
 | Orchestrate + delegate | Multi-Agent Orchestration (connected subagents, one org) | GA | not built here (see step 11) |
 | Tools beyond Flow/Apex | MCP for Agentforce (register servers, allowlist tools) + Agentforce Gateway policies | Available since May 2026 | not built here (see step 11) |
-| A judge from another lab | Testing Center custom scorers, where you choose the judge model | **Beta** | not built here (see step 11) |
+| A judge from another lab | A reviewer subagent pinned to another provider with `model_config`; custom scorers (through the API the judge is the model of the prompt template the scorer uses; the UI's judge picker is beta) | Subagent pin and scorers defined through the API: GA. Building scorers in the Testing Center UI: **Beta** (re-checked 2026-10-02) | not built here (see step 11) |
 | Autonomous improvement | Agent Optimizer (spots failure patterns, suggests fixes) | **Beta** | not built here |
 | The Slack front door | Slackbot MCP client: an MCP server added to a Slack app, whose tools Slackbot can call | Available on all plans (Slack help center, checked 2026-09-30) | not built here |
 | Custody of the safety layer | No native equivalent yet | Gap | not built here |
@@ -207,6 +207,7 @@ Gemini 3.5 Flash (`sfdc_ai__DefaultVertexAIGemini35Flash`) because they've been 
 To run a model from your own provider account, connect it through Bring Your Own LLM in AI Models
 (Amazon Bedrock, Azure OpenAI, OpenAI, Vertex AI, or anything behind the LLM Open Connector). The
 developer docs say a BYOLLM request still runs through the Trust Layer. Setup's model page adds that Agentforce itself is limited to a few model options, and that a custom action (a prompt template, Apex, or the Models API) can reference any Salesforce-managed or BYO model, so a BYO model belongs in an action.
+This agent is an employee agent, though, and *Considerations for Agentforce Employee Agent* says bringing your own model isn't supported there, but custom actions that run prompt templates can use any Salesforce-managed model. The same page also lists only GPT-4o for reasoning, which reads older than the model-option page, so treat that conflict as open and confirm the model pin in your org. Check that page for your agent type before you plan on BYO (re-checked 2026-10-02). A model override on a subagent also doesn't change the model that a prompt template inside an action uses.
 
 **Proof:** validate (step 2), publish and activate (step 4), then re-run step 7. The eval tests the latest active version, so an edit you haven't published never gets graded. A model change is a new version and has to earn its way
 through the same held-out eval. Use the cheaper model only where the eval stays green.
@@ -249,8 +250,10 @@ model does emit the link.
   tools, and use each one as an agent action. It accepts Streamable HTTP servers with OAuth client
   credentials or no auth, tools only. Put Agentforce Gateway policies (usage limits, tool restrictions) on
   any server you connect.
-- **A judge from another lab (beta).** Testing Center custom scorers let you pick which model does the
-  judging. That's the native seat for a cross-vendor check. I haven't confirmed which models the picker
+- **A judge from another lab.** Pin a reviewer subagent to a model from another provider with
+  `model_config` (GA), or write a custom scorer. Scorers defined through the API are generally available;
+  building one in the Testing Center UI in Agentforce Studio, where you pick which model does the judging,
+  is beta. Either is the native seat for a cross-vendor check, and both are worth checking against your agent type (step 8). I haven't confirmed which models the picker
   lists.
 
 ## 4. The Build Loop, with Claude Code
@@ -289,7 +292,7 @@ The code loop in section 4 has only run on my laptop. On the platform it would b
 Orchestration, a subagent pinned to another provider, and a custom-scorer judge, and I've checked that
 mapping against the docs without running it end to end in an org yet.
 
-This build doesn't depend on the Slack front door. Slack's help center now lists the Slackbot MCP client
+This build doesn't depend on the Slack front door. Slack's help center lists the Slackbot MCP client
 as available on all plans: a developer adds an MCP server to a Slack app, and once it's installed,
 Slackbot can call that server's tools. Wiring this agent into Slackbot is the next build, and this spec
 doesn't cover it yet. The other open row is custody, since no platform feature lets an owner hold a
@@ -315,11 +318,11 @@ These labels are a snapshot. Before a demo or a customer conversation:
 Salesforce and Slack documentation, checked 2026-09-29 (release 264):
 
 - Model per agent or subagent: *Specify Different Models in Agent Script*, developer.salesforce.com/docs/ai/agentforce/guide/ascript-model.html
-- Bring Your Own LLM + Trust Layer: *Supported Models*, developer.salesforce.com/docs/ai/agentforce/guide/supported-models.html; *Add a Foundation Model* (help.salesforce.com, `data.c360_a_ai_foundation_models_create`)
+- Bring Your Own LLM + Trust Layer: *Supported Models*, developer.salesforce.com/docs/ai/agentforce/guide/supported-models.html; *Add a Foundation Model* (help.salesforce.com, `data.c360_a_ai_foundation_models_create`); BYO and employee agents: *Considerations for Agentforce Employee Agent* (`ai.agent_employee_agent_considerations`); subagent override vs prompt templates: *Choosing an AI Model for a Subagent* (`ai.agent_subagents_model`). Re-checked 2026-10-02.
 - Agent user object permissions: *Configure Service Agent Access* (`ai.agent_user`); employee agent access via permission sets: *Manage Employee Agent Access*
 - Session Tracing + data model: *Agentforce Session Tracing* (`ai.generative_ai_session_trace`), *Agentforce Observability Infrastructure*
 - Trust Layer audit trail: *Audit Trail* (`ai.generative_ai_audit_trail`)
-- Testing Center + custom scorers (beta): *Agentforce Testing Center*, *Create Custom Scorers*, release note *Agentforce Observability: Refined Agent Analytics and Custom Scorers (Beta)*
+- Testing Center + custom scorers (API GA, UI beta): *Agentforce Testing Center*; *Create Custom Scorers* (`ai.agent_studio_testing_center_custom_evaluations`, New Testing Center in Agentforce Studio, Beta); *Scorers and Custom Scorers* (`ai.generative_ai_optimize_scorers`: "While creating scorers via API is generally available, creating scorers via the UI is a beta service"); release note *Agentforce Observability: Refined Agent Analytics and Custom Scorers (Beta)*. Re-checked 2026-10-02.
 - Multi-Agent Orchestration (GA): release note *Extend Agentforce Solutions with Multi-Agent Orchestration (Generally Available)*; limits in *Multi-Agent Orchestration* (`ai.agent_multi_orch`)
 - MCP for Agentforce: release note *Unlock Agent Interoperability with MCP for Agentforce*; *Considerations for MCP for Agentforce*
 - Agentforce Gateway policies: *Agentforce Gateway* (`ai.agentforce_gateway_policies`)
